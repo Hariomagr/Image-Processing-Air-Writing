@@ -1,13 +1,14 @@
 import cv2
 import imutils
 import numpy as np
-
+import math
 bg=None
-aWeight = 0.5
+aWeight = 0.1
 camera = cv2.VideoCapture(0)
 top, right, bottom, left = 10, 400, 250, 680
 num_frames = 0
 points=[]
+tempoints=[]
 flag=0
 while(True):
     (grabbed, frame) = camera.read()
@@ -31,6 +32,7 @@ while(True):
         if(len(cnts)==0):
             hand=None
             points=[]
+            tempoints=[]
         else:
             segmented = max(cnts, key=cv2.contourArea)
             hand=(thresholded,segmented)
@@ -45,12 +47,40 @@ while(True):
                 else:
                     flag=0
             if(flag==0):
+                tempoints=[]
                 points.append(extreme_top)
+            else:
+                tempoints.append(extreme_top)
             cv2.rectangle(clone,(10,top),(290,bottom),(255,0,0),3)
             for i in points:
                 (a,b)=i
-                cv2.line(clone,(a+10,b+top),(a+10,b+top),(255,0,255),5)
+                cv2.line(clone,(a+10,b+top),(a+10,b+top),(255,255,0),5)
+            for i in tempoints:
+                (a,b)=i
+                cv2.line(clone,(a+10,b+top),(a+10,b+top),(255,255,255),5)
+            ROI=clone[top:bottom,10:290]
+            if(keypress==ord("c")):
+                cv2.imwrite("text.jpg",ROI)
             cv2.imshow("Thesholded", thresholded)
+            hull = cv2.convexHull(segmented, returnPoints=False)
+            defects = cv2.convexityDefects(segmented, hull)
+            count_defects=0
+            if(defects is not None):
+                for i in range(defects.shape[0]):
+                    s,e,f,d = defects[i,0]
+                    start = tuple(segmented[s][0])
+                    end = tuple(segmented[e][0])
+                    far = tuple(segmented[f][0])
+                    a = math.sqrt((end[0] - start[0])**2 + (end[1] - start[1])**2)
+                    b = math.sqrt((far[0] - start[0])**2 + (far[1] - start[1])**2)
+                    c = math.sqrt((end[0] - far[0])**2 + (end[1] - far[1])**2)
+                    angle = math.acos((b**2 + c**2 - a**2)/(2*b*c)) * 57
+                    if angle <= 90:
+                        count_defects += 1
+                cv2.putText(clone, str(count_defects+1), (220,bottom+100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+            else:
+                cv2.putText(clone, "1", (220,bottom+100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+    cv2.putText(clone, "Total fingers:", (10,bottom+100), cv2.FONT_HERSHEY_SIMPLEX, 1, (35,114,234), 2)
     cv2.rectangle(clone, (left, top), (right, bottom), (0,255,0), 2)
     num_frames += 1
     cv2.imshow("Video Feed", clone)
