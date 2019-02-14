@@ -8,8 +8,8 @@ camera = cv2.VideoCapture(0)
 top, right, bottom, left = 10, 400, 250, 680
 num_frames = 0
 points=[]
-tempoints=[]
-flag=0
+tempoints=None
+flag=1
 while(True):
     (grabbed, frame) = camera.read()
     frame = imutils.resize(frame, width=700)
@@ -32,7 +32,7 @@ while(True):
         if(len(cnts)==0):
             hand=None
             points=[]
-            tempoints=[]
+            tempoints=None
         else:
             segmented = max(cnts, key=cv2.contourArea)
             hand=(thresholded,segmented)
@@ -47,17 +47,16 @@ while(True):
                 else:
                     flag=0
             if(flag==0):
-                tempoints=[]
+                tempoints=None
                 points.append(extreme_top)
             else:
-                tempoints.append(extreme_top)
-            cv2.rectangle(clone,(10,top),(290,bottom),(255,0,0),3)
+                tempoints=extreme_top
             for i in points:
                 (a,b)=i
-                cv2.line(clone,(a+10,b+top),(a+10,b+top),(255,255,0),5)
-            for i in tempoints:
-                (a,b)=i
-                cv2.line(clone,(a+10,b+top),(a+10,b+top),(255,255,255),5)
+                cv2.line(clone,(a+right,b+top),(a+right,b+top),(255,255,0),5)
+            if(tempoints is not None):
+                (a,b)=tempoints
+                cv2.line(clone,(a+right,b+top),(a+right,b+top),(255,255,255),5)
             ROI=clone[top:bottom,10:290]
             if(keypress==ord("c")):
                 cv2.imwrite("text.jpg",ROI)

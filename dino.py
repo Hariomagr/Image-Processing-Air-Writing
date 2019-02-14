@@ -7,16 +7,19 @@ import math
 pyautogui.FAILSAFE = True
 
 def up():
-    pyautogui.keyUp('down')
-    pyautogui.keyDown('space')
+    pyautogui.keyDown('up')
+    pyautogui.keyUp('up')
+    #time.sleep(0.005)
     print('Jump control')
 def duck():
-    pyautogui.keyUp('space')
     pyautogui.keyDown('down')
-    print('Duck control')  
+    #time.sleep(0.05)
+    pyautogui.keyUp('down')
+    print('Duck control')
 def normal():
      pyautogui.keyUp('down')
      pyautogui.keyUp('space')
+     #time.sleep(0.005)
      print('Normal')
 bg=None
 aWeight = 0.1
@@ -55,11 +58,11 @@ while(True):
             hull = cv2.convexHull(segmented)
             extreme_top = tuple(hull[hull[:, :, 1].argmin()][0])
             (a,b)=extreme_top
-            if(avgy+20<b):
+            if(avgy+40<b):
                 if(current!=-1):
                     duck()
                     current=-1
-            elif(avgy-20>b):
+            elif(avgy-40>b):
                 if(current!=1):
                     up()
                     current=1
@@ -68,8 +71,8 @@ while(True):
                 current=0
             cv2.circle(clone,(a+right,b+10),2,(255,255,255),5)
     cv2.line(clone,(left,avgy),(right,avgy),(0,255,255),2)
-    cv2.line(clone,(left,avgy+20),(right,avgy+20),(255,255,255),2)
-    cv2.line(clone,(left,avgy-20),(right,avgy-20),(255,255,255),2)
+    cv2.line(clone,(left,avgy+40),(right,avgy+40),(255,255,255),2)
+    cv2.line(clone,(left,avgy-40),(right,avgy-40),(255,255,255),2)
     cv2.rectangle(clone, (left, top), (right, bottom), (0,255,0), 2)
     num_frames += 1
     cv2.imshow("Video Feed", clone)
